@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: fms_genai_idea
+  datasource:
+    url: jdbc:postgresql://localhost:5432/genai_idea
+    username: admin
+    password: manager
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: llama3.1
+      embedding:
+        model: llama3.1
+
+logging:
+  level:
+    org.springframework.ai: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+server:
+  port: 8080
+
+
+
