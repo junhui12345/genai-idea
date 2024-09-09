@@ -1,4 +1,4 @@
-package genai.idea.fms;
+package genai.idea.fms.controller;
 
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;

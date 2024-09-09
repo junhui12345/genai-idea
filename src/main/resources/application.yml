@@ -1,4 +1,7 @@
 spring:
+  config:
+    activate:
+      on-profile: default
   application:
     name: fms_genai_idea
   datasource:
@@ -21,6 +24,14 @@ spring:
         model: llama3.1
       embedding:
         model: llama3.1
+    vectorstore:
+      pgvector:
+        index-type: hnsw
+        distance-type: cosine_distance
+  sql:
+    init:
+      mode: always
+
 
 logging:
   level:
@@ -30,6 +41,5 @@ logging:
 
 server:
   port: 8080
-
 
 

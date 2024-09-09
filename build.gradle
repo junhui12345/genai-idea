@@ -33,6 +33,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.ai:spring-ai-ollama-spring-boot-starter'
     implementation 'org.springframework.ai:spring-ai-pgvector-store'
+    implementation 'org.hibernate:hibernate-core:6.5.2.Final' // 필요시 추가
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 
     // PostgreSQL 의존성 추가
     runtimeOnly 'org.postgresql:postgresql'
