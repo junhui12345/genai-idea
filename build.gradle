@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.3'
     id 'io.spring.dependency-management' version '1.1.6'
+    id 'com.avast.gradle.docker-compose' version '0.17.5'
 }
 
 group = 'genai.idea'
@@ -33,21 +34,17 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.ai:spring-ai-ollama-spring-boot-starter'
     implementation 'org.springframework.ai:spring-ai-pgvector-store'
-    implementation 'org.hibernate:hibernate-core:6.5.2.Final' // 필요시 추가
+    implementation 'org.hibernate:hibernate-core:6.5.2.Final'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // PostgreSQL 의존성 추가
     runtimeOnly 'org.postgresql:postgresql'
 
-    // SQLite는 테스트용으로만 사용
     testRuntimeOnly 'org.xerial:sqlite-jdbc'
     testImplementation 'org.hibernate.orm:hibernate-community-dialects'
 
-    compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -60,4 +57,32 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+dockerCompose {
+    useComposeFiles = ['docker-compose.yml']
+    startedServices = ['postgres-db']
+    stopContainers = true  // 컨테이너를 중지하지 않음
+    removeContainers = true  // 컨테이너를 제거하지 않음
+    removeVolumes = true  // 볼륨을 제거하지 않음
+    removeOrphans = true  // 고아 컨테이너를 제거하지 않음
+    captureContainersOutput = true
+    checkContainersRunning = true  // 컨테이너가 실행 중인지 확인
+}
+
+// Gradle의 빌드 라이프사이클에 Docker Compose 태스크 통합
+tasks.named('processResources') {
+    dependsOn tasks.named('composeUp')
+}
+
+// 애플리케이션 종료 시 컨테이너를 중지하지 않도록 설정
+tasks.named('bootRun') {
+    dependsOn tasks.named('composeUp')
+    // finalizedBy tasks.named('composeDown') 제거
+}
+
+// 테스트 실행 시에도 Docker Compose 사용
+tasks.named('test') {
+    dependsOn tasks.named('composeUp')
+    // finalizedBy tasks.named('composeDown') 제거
 }

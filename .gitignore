@@ -271,4 +271,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/windows,eclipse,intellij,java
+# End of https://www.toptal.com/developers/gitignore/api/windows,eclipse,intellij,java!/postgres_data/
+
+!/data.sql/
+!/postgres_data/
+!/schema.sql/
