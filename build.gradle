@@ -23,6 +23,7 @@ configurations {
 repositories {
     mavenCentral()
     maven { url 'https://repo.spring.io/milestone' }
+    //maven { url 'https://repo.gradle.org/gradle/libs-releases' }
 }
 
 ext {
@@ -35,6 +36,7 @@ dependencies {
     implementation 'org.springframework.ai:spring-ai-ollama-spring-boot-starter'
     implementation 'org.springframework.ai:spring-ai-pgvector-store'
     implementation 'org.hibernate:hibernate-core:6.5.2.Final'
+    //implementation 'org.gradle:gradle-tooling-api:7.6'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -62,27 +64,44 @@ tasks.named('test') {
 dockerCompose {
     useComposeFiles = ['docker-compose.yml']
     startedServices = ['postgres-db']
-    stopContainers = true  // 컨테이너를 중지하지 않음
-    removeContainers = true  // 컨테이너를 제거하지 않음
-    removeVolumes = true  // 볼륨을 제거하지 않음
-    removeOrphans = true  // 고아 컨테이너를 제거하지 않음
+    stopContainers = true  // 컨테이너를 중지
+    removeContainers = true  // 컨테이너를 제거
+    removeVolumes = true  // 볼륨을 제거
+    removeOrphans = true  // 고아 컨테이너를 제거
     captureContainersOutput = true
     checkContainersRunning = true  // 컨테이너가 실행 중인지 확인
 }
 
-// Gradle의 빌드 라이프사이클에 Docker Compose 태스크 통합
 tasks.named('processResources') {
     dependsOn tasks.named('composeUp')
 }
 
-// 애플리케이션 종료 시 컨테이너를 중지하지 않도록 설정
 tasks.named('bootRun') {
     dependsOn tasks.named('composeUp')
-    // finalizedBy tasks.named('composeDown') 제거
 }
 
-// 테스트 실행 시에도 Docker Compose 사용
 tasks.named('test') {
+    useJUnitPlatform()
     dependsOn tasks.named('composeUp')
-    // finalizedBy tasks.named('composeDown') 제거
+}
+
+tasks.named('composeUp') {
+    doFirst {
+        println 'composeUp Start'
+    }
+    doLast {
+        println 'composeUp Finish'
+    }
+}
+
+tasks.named('composeDown') {
+    doFirst {
+        println 'composeDown Start'
+    }
+    doLast {
+        exec {
+            commandLine 'docker-compose', '-f', 'docker-compose.yml', 'down', '--volumes', '--remove-orphans'
+        }
+        println 'composeDown Finish'
+    }
 }
