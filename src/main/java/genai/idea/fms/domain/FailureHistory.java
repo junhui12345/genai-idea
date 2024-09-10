@@ -1,5 +1,8 @@
 package genai.idea.fms.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -16,6 +19,8 @@ public class FailureHistory {
     @Column(name = "failure_id")
     private Integer failureId;
 
+    @JsonBackReference
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "equipment_id")
     private Equipment equipment;
@@ -35,6 +40,7 @@ public class FailureHistory {
     @Column(name = "repair_cost", precision = 10, scale = 2)
     private BigDecimal repairCost;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "failureHistory")
     private List<MaintenanceHistory> maintenanceHistories;
 

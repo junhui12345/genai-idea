@@ -1,5 +1,7 @@
 package genai.idea.fms.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -15,10 +17,14 @@ public class MaintenanceHistory {
     @Column(name = "maintenance_id")
     private Integer maintenanceId;
 
+    @JsonBackReference
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "equipment_id")
     private Equipment equipment;
 
+    @JsonBackReference
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "failure_id")
     private FailureHistory failureHistory;

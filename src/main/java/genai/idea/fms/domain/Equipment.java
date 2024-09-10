@@ -1,6 +1,7 @@
 package genai.idea.fms.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -34,9 +35,11 @@ public class Equipment {
     @Column(name = "status", length = 20)
     private String status;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "equipment")
     private List<FailureHistory> failureHistories;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "equipment")
     private List<MaintenanceHistory> maintenanceHistories;
 
