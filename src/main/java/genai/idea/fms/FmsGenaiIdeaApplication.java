@@ -38,7 +38,6 @@ public class FmsGenaiIdeaApplication {
                 process.waitFor();
             } catch (Exception e) {
                 System.err.println("Gradle task composeDown 실행 중 오류 발생: " + e.getMessage());
-                e.printStackTrace();
             }
         }));
     }
