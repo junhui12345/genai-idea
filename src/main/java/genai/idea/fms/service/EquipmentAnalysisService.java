@@ -5,15 +5,16 @@ import genai.idea.fms.domain.FailureHistory;
 import genai.idea.fms.domain.MaintenanceHistory;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class EquipmentAnalysisService {
@@ -24,6 +25,18 @@ public class EquipmentAnalysisService {
     @Autowired
     private OllamaChatModel chatModel;
 
+    @Value("classpath:/prompts/most-maintenance.st")
+    private Resource mostMaintenanceResource;
+
+    @Value("classpath:/prompts/least-maintenance.st")
+    private Resource leastMaintenanceResource;
+
+    @Value("classpath:/prompts/recent-maintenance.st")
+    private Resource recentMaintenanceResource;
+
+    @Value("classpath:/prompts/high-failure-probability.st")
+    private Resource highFailureProbabilityResource;
+
     public String findEquipmentWithMostMaintenanceHistory() {
         List<Equipment> equipmentList = equipmentService.findAll();
 
@@ -32,14 +45,23 @@ public class EquipmentAnalysisService {
 
         if (equipmentWithMostMaintenance.isPresent()) {
             Equipment equipment = equipmentWithMostMaintenance.get();
-            String prompt = String.format(
-                    "Equipment '%s' (ID: %d) has the most maintenance history with %d records. " +
-                    "Please provide a brief analysis of why this equipment might require more maintenance than others." +
-                    "Please provide your response in Korean.",
-                    equipment.getName(),
-                    equipment.getEquipmentId(),
-                    equipment.getMaintenanceHistories().size()
-            );
+            Optional<MaintenanceHistory> lastMaintenance = equipment.getMaintenanceHistories().stream()
+                    .max(Comparator.comparing(MaintenanceHistory::getMaintenanceDate));
+
+            SystemPromptTemplate promptTemplate = new SystemPromptTemplate(mostMaintenanceResource);
+            Map<String, Object> model = new HashMap<>();
+            model.put("name", equipment.getName());
+            model.put("id", equipment.getEquipmentId());
+            model.put("count", equipment.getMaintenanceHistories().size());
+
+            // Add these new variables
+            lastMaintenance.ifPresent(maintenance -> {
+                model.put("date", maintenance.getMaintenanceDate());
+                model.put("type", maintenance.getMaintenanceType());
+                model.put("description", maintenance.getDescription());
+            });
+
+            String prompt = promptTemplate.create(model).getContents();
 
             ChatResponse response = chatModel.call(
                     new Prompt(
@@ -64,15 +86,13 @@ public class EquipmentAnalysisService {
 
         if (equipmentWithLeastMaintenance.isPresent()) {
             Equipment equipment = equipmentWithLeastMaintenance.get();
-            String prompt = String.format(
-                    "Equipment '%s' (ID: %d) has the least maintenance history with %d records. " +
-                            "Please provide a brief analysis of why this equipment might require less maintenance than others. " +
-                            "Consider factors such as age, type, usage, or quality. " +
-                            "Please provide your response in Korean.",
-                    equipment.getName(),
-                    equipment.getEquipmentId(),
-                    equipment.getMaintenanceHistories().size()
+            SystemPromptTemplate promptTemplate = new SystemPromptTemplate(leastMaintenanceResource);
+            Map<String, Object> model = Map.of(
+                    "name", equipment.getName(),
+                    "id", equipment.getEquipmentId(),
+                    "count", equipment.getMaintenanceHistories().size()
             );
+            String prompt = promptTemplate.create(model).getContents();
 
             ChatResponse response = chatModel.call(
                     new Prompt(
@@ -99,18 +119,20 @@ public class EquipmentAnalysisService {
         if (mostRecentMaintenance.isPresent()) {
             MaintenanceHistory maintenance = mostRecentMaintenance.get();
             Equipment equipment = maintenance.getEquipment();
-            String prompt = String.format(
-                    "The most recent maintenance was performed on equipment '%s' (ID: %d) on %s. " +
-                            "The maintenance type was '%s' and the description was '%s'. " +
-                            "Please provide a brief analysis of this maintenance event, considering its timing, type, and potential impact on the equipment's performance. " +
-                            "Also, suggest any follow-up actions or monitoring that might be necessary. " +
-                            "Please provide your response in Korean.",
-                    equipment.getName(),
-                    equipment.getEquipmentId(),
-                    maintenance.getMaintenanceDate(),
-                    maintenance.getMaintenanceType(),
-                    maintenance.getDescription()
+            SystemPromptTemplate promptTemplate = new SystemPromptTemplate(recentMaintenanceResource);
+            Map<String, Object> model = Map.of(
+                    "name", equipment.getName(),
+                    "id", equipment.getEquipmentId(),
+                    "date", maintenance.getMaintenanceDate(),
+                    "type", maintenance.getMaintenanceType(),
+                    "description", maintenance.getDescription(),
+                    "lastMaintenanceDate", maintenance.getMaintenanceDate(),
+                    "lastFailureDate", getMostRecentDate(equipment.getFailureHistories(), FailureHistory::getFailureDate),
+                    "riskScore", calculateRiskScore(equipment),
+                    "maintenanceCount", equipment.getMaintenanceHistories().size(),
+                    "failureCount", equipment.getFailureHistories().size()
             );
+            String prompt = promptTemplate.create(model).getContents();
 
             ChatResponse response = chatModel.call(
                     new Prompt(
@@ -137,22 +159,18 @@ public class EquipmentAnalysisService {
             Equipment equipment = equipmentWithHighestRisk.get();
             double riskScore = calculateRiskScore(equipment);
 
-            String prompt = String.format(
-                    "Equipment '%s' (ID: %d) has the highest probability of failure with a risk score of %.2f. " +
-                            "This equipment has had %d failures and %d maintenance events. " +
-                            "The most recent failure was on %s and the most recent maintenance was on %s. " +
-                            "Please provide a detailed analysis of why this equipment might be at high risk of failure. " +
-                            "Consider factors such as frequency of past failures, maintenance history, and time since last failure/maintenance. " +
-                            "Also, suggest preventive measures that could be taken to reduce the risk of failure. " +
-                            "Please provide your response in Korean.",
-                    equipment.getName(),
-                    equipment.getEquipmentId(),
-                    riskScore,
-                    equipment.getFailureHistories().size(),
-                    equipment.getMaintenanceHistories().size(),
-                    getMostRecentDate(equipment.getFailureHistories(), FailureHistory::getFailureDate),
-                    getMostRecentDate(equipment.getMaintenanceHistories(), MaintenanceHistory::getMaintenanceDate)
+            SystemPromptTemplate promptTemplate = new SystemPromptTemplate(highFailureProbabilityResource);
+            Map<String, Object> model = Map.of(
+                    "name", equipment.getName(),
+                    "id", equipment.getEquipmentId(),
+                    "riskScore", String.format("%.2f", riskScore),
+                    "failureCount", equipment.getFailureHistories().size(),
+                    "maintenanceCount", equipment.getMaintenanceHistories().size(),
+                    "lastFailureDate", getMostRecentDate(equipment.getFailureHistories(), FailureHistory::getFailureDate),
+                    "lastMaintenanceDate", getMostRecentDate(equipment.getMaintenanceHistories(), MaintenanceHistory::getMaintenanceDate),
+                    "count", equipment.getFailureHistories().size() + equipment.getMaintenanceHistories().size() // 전체 이벤트 수
             );
+            String prompt = promptTemplate.create(model).getContents();
 
             ChatResponse response = chatModel.call(
                     new Prompt(
@@ -175,8 +193,6 @@ public class EquipmentAnalysisService {
         int failureCount = equipment.getFailureHistories().size();
         int maintenanceCount = equipment.getMaintenanceHistories().size();
 
-        // 간단한 위험도 점수 계산 예시
-        // 실제 구현에서는 더 복잡한 로직이 필요할 수 있습니다
         return (failureCount * 10.0) / (daysSinceLastFailure + 1) +
                 (maintenanceCount * 5.0) / (daysSinceLastMaintenance + 1);
     }
