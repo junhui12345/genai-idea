@@ -43,6 +43,4 @@ public class MaintenanceHistory {
 
     @Column(name = "technician", length = 100)
     private String technician;
-
-    // Getters and setters
 }

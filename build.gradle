@@ -36,6 +36,7 @@ dependencies {
     implementation 'org.springframework.ai:spring-ai-ollama-spring-boot-starter'
     implementation 'org.springframework.ai:spring-ai-pgvector-store'
     implementation 'org.hibernate:hibernate-core:6.5.2.Final'
+    implementation 'com.pgvector:pgvector:0.1.6'
     //implementation 'org.gradle:gradle-tooling-api:7.6'
 
     compileOnly 'org.projectlombok:lombok'

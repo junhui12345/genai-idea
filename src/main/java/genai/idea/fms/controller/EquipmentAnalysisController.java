@@ -1,5 +1,6 @@
 package genai.idea.fms.controller;
 
+import genai.idea.fms.domain.Equipment;
 import genai.idea.fms.service.EquipmentAnalysisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,5 +32,10 @@ public class EquipmentAnalysisController {
     @GetMapping("/high-risk-equipment")
     public String getHighRiskEquipmentAnalysis() {
         return equipmentAnalysisService.findEquipmentWithHighFailureProbability();
+    }
+
+    @GetMapping("/highest-failure-probability")
+    public Equipment getEquipmentWithHighestFailureProbability() {
+        return equipmentAnalysisService.findEquipmentWithHighestFailureProbability();
     }
 }

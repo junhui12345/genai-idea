@@ -42,6 +42,4 @@ public class Equipment {
     @JsonManagedReference
     @OneToMany(mappedBy = "equipment")
     private List<MaintenanceHistory> maintenanceHistories;
-
-    // Getters and setters
 }

@@ -25,6 +25,9 @@ public class EquipmentAnalysisService {
     @Autowired
     private OllamaChatModel chatModel;
 
+    @Autowired
+    private FailurePredictionService failurePredictionService;
+
     @Value("classpath:/prompts/most-maintenance.st")
     private Resource mostMaintenanceResource;
 
@@ -149,43 +152,87 @@ public class EquipmentAnalysisService {
         }
     }
 
-    public String findEquipmentWithHighFailureProbability() {
-        List<Equipment> equipmentList = equipmentService.findAll();
-
-        Optional<Equipment> equipmentWithHighestRisk = equipmentList.stream()
-                .max(Comparator.comparingDouble(this::calculateRiskScore));
-
-        if (equipmentWithHighestRisk.isPresent()) {
-            Equipment equipment = equipmentWithHighestRisk.get();
-            double riskScore = calculateRiskScore(equipment);
-
-            SystemPromptTemplate promptTemplate = new SystemPromptTemplate(highFailureProbabilityResource);
-            Map<String, Object> model = Map.of(
-                    "name", equipment.getName(),
-                    "id", equipment.getEquipmentId(),
-                    "riskScore", String.format("%.2f", riskScore),
-                    "failureCount", equipment.getFailureHistories().size(),
-                    "maintenanceCount", equipment.getMaintenanceHistories().size(),
-                    "lastFailureDate", getMostRecentDate(equipment.getFailureHistories(), FailureHistory::getFailureDate),
-                    "lastMaintenanceDate", getMostRecentDate(equipment.getMaintenanceHistories(), MaintenanceHistory::getMaintenanceDate),
-                    "count", equipment.getFailureHistories().size() + equipment.getMaintenanceHistories().size() // 전체 이벤트 수
-            );
-            String prompt = promptTemplate.create(model).getContents();
-
-            ChatResponse response = chatModel.call(
-                    new Prompt(
-                            prompt,
-                            OllamaOptions.builder()
-                                    .withTemperature(0F)
-                                    .build()
-                    )
-            );
-
-            return response.getResult().getOutput().getContent();
-        } else {
-            return "No equipment found with failure history.";
-        }
+    public Equipment findEquipmentWithHighestFailureProbability() {
+        List<Equipment> allEquipment = equipmentService.findAll();
+        return allEquipment.stream()
+                .max(Comparator.comparingDouble(this::calculateFailureProbability))
+                .orElseThrow(() -> new RuntimeException("No equipment found"));
     }
+
+    private double calculateFailureProbability(Equipment equipment) {
+        List<FailureHistory> similarFailures = failurePredictionService.findSimilarFailures(equipment, 5);
+        long recentFailures = similarFailures.stream()
+                .filter(f -> f.getFailureDate().isAfter(LocalDate.now().minusMonths(6)))
+                .count();
+        return similarFailures.isEmpty() ? 0 : (double) recentFailures / similarFailures.size();
+    }
+
+    public String findEquipmentWithHighFailureProbability() {
+        Equipment equipment = findEquipmentWithHighestFailureProbability();
+        double failureProbability = calculateFailureProbability(equipment);
+
+        SystemPromptTemplate promptTemplate = new SystemPromptTemplate(highFailureProbabilityResource);
+        Map<String, Object> model = Map.of(
+                "name", equipment.getName(),
+                "id", equipment.getEquipmentId(),
+                "failureProbability", String.format("%.2f", failureProbability),
+                "failureCount", equipment.getFailureHistories().size(),
+                "maintenanceCount", equipment.getMaintenanceHistories().size(),
+                "lastFailureDate", getMostRecentDate(equipment.getFailureHistories(), FailureHistory::getFailureDate),
+                "lastMaintenanceDate", getMostRecentDate(equipment.getMaintenanceHistories(), MaintenanceHistory::getMaintenanceDate),
+                "count", equipment.getFailureHistories().size() + equipment.getMaintenanceHistories().size()
+        );
+        String prompt = promptTemplate.create(model).getContents();
+
+        ChatResponse response = chatModel.call(
+                new Prompt(
+                        prompt,
+                        OllamaOptions.builder()
+                                .withTemperature(0F)
+                                .build()
+                )
+        );
+
+        return response.getResult().getOutput().getContent();
+    }
+
+    //public String findEquipmentWithHighFailureProbability() {
+    //        List<Equipment> equipmentList = equipmentService.findAll();
+    //
+    //        Optional<Equipment> equipmentWithHighestRisk = equipmentList.stream()
+    //                .max(Comparator.comparingDouble(this::calculateRiskScore));
+    //
+    //        if (equipmentWithHighestRisk.isPresent()) {
+    //            Equipment equipment = equipmentWithHighestRisk.get();
+    //            double riskScore = calculateRiskScore(equipment);
+    //
+    //            SystemPromptTemplate promptTemplate = new SystemPromptTemplate(highFailureProbabilityResource);
+    //            Map<String, Object> model = Map.of(
+    //                    "name", equipment.getName(),
+    //                    "id", equipment.getEquipmentId(),
+    //                    "riskScore", String.format("%.2f", riskScore),
+    //                    "failureCount", equipment.getFailureHistories().size(),
+    //                    "maintenanceCount", equipment.getMaintenanceHistories().size(),
+    //                    "lastFailureDate", getMostRecentDate(equipment.getFailureHistories(), FailureHistory::getFailureDate),
+    //                    "lastMaintenanceDate", getMostRecentDate(equipment.getMaintenanceHistories(), MaintenanceHistory::getMaintenanceDate),
+    //                    "count", equipment.getFailureHistories().size() + equipment.getMaintenanceHistories().size() // 전체 이벤트 수
+    //            );
+    //            String prompt = promptTemplate.create(model).getContents();
+    //
+    //            ChatResponse response = chatModel.call(
+    //                    new Prompt(
+    //                            prompt,
+    //                            OllamaOptions.builder()
+    //                                    .withTemperature(0F)
+    //                                    .build()
+    //                    )
+    //            );
+    //
+    //            return response.getResult().getOutput().getContent();
+    //        } else {
+    //            return "No equipment found with failure history.";
+    //        }
+    //    }
 
     private double calculateRiskScore(Equipment equipment) {
         long daysSinceLastFailure = getDaysSinceLastEvent(equipment.getFailureHistories(), FailureHistory::getFailureDate);

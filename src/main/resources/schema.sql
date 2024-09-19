@@ -1,6 +1,16 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
+DROP TABLE IF EXISTS vector_store;
 DROP TABLE IF EXISTS Maintenance_History;
 DROP TABLE IF EXISTS Failure_History;
 DROP TABLE IF EXISTS Equipment;
+
+CREATE TABLE vector_store (
+    id UUID PRIMARY KEY,
+    content TEXT,
+    metadata JSONB,
+    embedding vector(4096)
+);
 
 -- 설비 정보 테이블 생성
 CREATE TABLE Equipment (
