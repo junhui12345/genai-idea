@@ -196,44 +196,6 @@ public class EquipmentAnalysisService {
         return response.getResult().getOutput().getContent();
     }
 
-    //public String findEquipmentWithHighFailureProbability() {
-    //        List<Equipment> equipmentList = equipmentService.findAll();
-    //
-    //        Optional<Equipment> equipmentWithHighestRisk = equipmentList.stream()
-    //                .max(Comparator.comparingDouble(this::calculateRiskScore));
-    //
-    //        if (equipmentWithHighestRisk.isPresent()) {
-    //            Equipment equipment = equipmentWithHighestRisk.get();
-    //            double riskScore = calculateRiskScore(equipment);
-    //
-    //            SystemPromptTemplate promptTemplate = new SystemPromptTemplate(highFailureProbabilityResource);
-    //            Map<String, Object> model = Map.of(
-    //                    "name", equipment.getName(),
-    //                    "id", equipment.getEquipmentId(),
-    //                    "riskScore", String.format("%.2f", riskScore),
-    //                    "failureCount", equipment.getFailureHistories().size(),
-    //                    "maintenanceCount", equipment.getMaintenanceHistories().size(),
-    //                    "lastFailureDate", getMostRecentDate(equipment.getFailureHistories(), FailureHistory::getFailureDate),
-    //                    "lastMaintenanceDate", getMostRecentDate(equipment.getMaintenanceHistories(), MaintenanceHistory::getMaintenanceDate),
-    //                    "count", equipment.getFailureHistories().size() + equipment.getMaintenanceHistories().size() // 전체 이벤트 수
-    //            );
-    //            String prompt = promptTemplate.create(model).getContents();
-    //
-    //            ChatResponse response = chatModel.call(
-    //                    new Prompt(
-    //                            prompt,
-    //                            OllamaOptions.builder()
-    //                                    .withTemperature(0F)
-    //                                    .build()
-    //                    )
-    //            );
-    //
-    //            return response.getResult().getOutput().getContent();
-    //        } else {
-    //            return "No equipment found with failure history.";
-    //        }
-    //    }
-
     private double calculateRiskScore(Equipment equipment) {
         long daysSinceLastFailure = getDaysSinceLastEvent(equipment.getFailureHistories(), FailureHistory::getFailureDate);
         long daysSinceLastMaintenance = getDaysSinceLastEvent(equipment.getMaintenanceHistories(), MaintenanceHistory::getMaintenanceDate);
