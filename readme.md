@@ -270,9 +270,9 @@ $$d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$$
 - Ollama 관련 오류가 발생한다면 Ollama 서비스가 실행 중인지 확인하고, 필요한 모델이 올바르게 다운로드되었는지 확인하세요.
 
 ## 실행 방법 및 결과
-GET http://localhost:8080/api/analysis/most-maintained-equipment
-<details>
-<summary>가장 최근 유지보수 설비 실행 결과</summary>
+
+가장 최근 유지보수 설비
+- GET http://localhost:8080/api/analysis/most-maintained-equipment
 
 ```
 컨베이어 벨트 A (ID: 1)의 최근 유지보수는 2024-07-23에 수행되었습니다.
@@ -297,11 +297,10 @@ GET http://localhost:8080/api/analysis/most-maintained-equipment
 이 유지보수는 장치의 성능 향상과 안정성을 보장하기 위한 중요한 작업입니다. 그러나, 추가적인 작업과 모니터링을 통해, 장치의 성능 향상과 안전성 확보를 보장할 수 있습니다.
 ```
 
-</details>
 
-GET http://localhost:8080/api/analysis/least-maintained-equipment
-<details>
-<summary>가장 적은 유지보수가 이루어지고 있는 장비 실행 결과</summary>
+가장 적은 유지보수가 이루어지고 있는 장비 실행 결과
+- GET http://localhost:8080/api/analysis/least-maintained-equipment
+
 
 ```
 기계 '크레인 F' (ID: 6)가 가장 적은 유지보수 기록을 가지고 있는 것으로 보입니다. 이 기계의 유지보수 기록이 다른 기계보다 적게 남아있는 이유를 분석해 보겠습니다.
@@ -315,11 +314,10 @@ GET http://localhost:8080/api/analysis/least-maintained-equipment
 결론적으로, 크레인 F의 유지보수 기록이 다른 기계보다 적게 남아있는 이유는 여러 가지 요인이 있을 수 있습니다. 하지만, 가장 가능성 있는 이유는 이 기계가 상대적으로 젊은 나이에, 단순한 설계에, 적게 사용되었을 수 있으며, 높은 품질을 가지고 있었기 때문입니다.
 이 유지보수는 장치의 성능 향상과 안정성을 보장하기 위한 중요한 작업입니다. 그러나, 추가적인 작업과 모니터링을 통해, 장치의 성능 향상과 안전성 확보를 보장할 수 있습니다.
 ```
-</details>
 
-GET http://localhost:8080/api/analysis/highest-failure-probability
-<details>
-<summary>고장 확률이 높은 설비 실행 결과</summary>
+
+고장 확률이 높은 설비
+- GET http://localhost:8080/api/analysis/highest-failure-probability
 
 ```json
 {
@@ -365,7 +363,6 @@ GET http://localhost:8080/api/analysis/highest-failure-probability
 }
 ```
 
-</details>
 
 ## 참고 자료
 - [Spring AI 문서](https://docs.spring.io/spring-ai/reference/index.html)
