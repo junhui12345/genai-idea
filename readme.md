@@ -192,10 +192,12 @@ PostgreSQL의 pgvector 확장을 사용하여 벡터 데이터를 효율적으�
 
 이러한 벡터 기반 접근 방식은 FailurePredictionService에서 활용되어 고장 예측 및 분석 기능을 제공합니다.
 
+```
 참고)
 유클리디안 거리(Euclidean Distance)
 두 점 사이의 직선 거리를 측정하는 방법
 $$d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$$
+```
 
 ### AI 개념 적용
 1. 텍스트 생성 (Text Generation):
