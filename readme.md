@@ -14,7 +14,7 @@ Meta Llama 모델을 사용하여 로컬 환경에서 실행 가능하여 민감
     - 가장 적게 유지보수된 설비 분석
     - 최근 유지보수 분석
     - 고위험 설비 분석
-5. 고장 예측: 머신러닝 모델을 사용한 설비 고장 예측
+5. 고장 예측: Meta Llama 3.1 8b 모델을 사용한 설비 고장 예측
 
 ## 기술 스택
 - Spring Boot 3.3.3
@@ -22,16 +22,17 @@ Meta Llama 모델을 사용하여 로컬 환경에서 실행 가능하여 민감
 - PostgreSQL (pgvector)
 - Gradle
 - Docker
-- Ollama
-- Llama 3.1 8b
+- Meta Llama 3.1 8b
+- Ollama (AI 모델을 쉽게 관리하고 배포할 수 있는 플랫폼) 
+
 
 ## Llama 3.1 8b 하드웨어 요구사항
 Llama 3.1 Version Release Date: 2024-07-23
 
-CPU: 최소 8코어 이상의 최신 프로세서
-RAM: 최소 16GB 권장
-GPU: NVIDIA RTX 3090 (24GB) 또는 RTX 4090 (24GB)
-스토리지: 모델 및 관련 데이터에 약 20-30GB
+- CPU: 최소 8코어 이상의 최신 프로세서
+- RAM: 최소 16GB 권장
+- GPU: NVIDIA RTX 3090 (24GB) 또는 RTX 4090 (24GB)
+- 스토리지: 약 20-30GB
 
 
 ## 프로젝트 구조
@@ -51,14 +52,12 @@ src/main/java/genai/idea/fms/
     - EquipmentController: 설비 CRUD API
     - FailureHistoryController: 고장 이력 API
     - MaintenanceHistoryController: 유지보수 이력 API
-    - OllamaAiRestController: Ollama AI 모델 직접 대화 API
 
 
 2. 도메인 모델 (domain/)
     - Equipment: 설비 정보
     - FailureHistory: 고장 이력
     - MaintenanceHistory: 유지보수 이력
-
 
 
 3. 리포지토리 (repository/)
@@ -102,6 +101,7 @@ src/main/java/genai/idea/fms/
 
 10. 메인 애플리케이션
     - FmsGenaiIdeaApplication: 애플리케이션 시작점 및 종료 로직
+
 
 ## AI 워크플로우 및 사용 개념
 
