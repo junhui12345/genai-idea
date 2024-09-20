@@ -2,7 +2,11 @@
 
 ## 프로젝트 설명
 이 프로젝트는 Spring AI와 Llama 3.1 8b를 활용한 설비 보전 시스템(FMS) 예측 기능 데모 입니다.
+
+
 설비의 고장을 예측하고, 유지보수 일정을 최적화하며, 설비 성능을 분석하는 AI 기반 솔루션을 제공합니다.
+
+
 Meta Llama 모델을 사용하여 로컬 환경에서 실행 가능하여 민감한 설비 데이터를 외부 서버로 전송하지 않고 처리할 수 있습니다.
 
 ![process_overview.png](image%2Fprocess_overview.png)
@@ -232,6 +236,7 @@ $$d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$$
 
 
 6. 워크플로우
+
 ![embedding.png](image%2Fembedding.png)
 
 
