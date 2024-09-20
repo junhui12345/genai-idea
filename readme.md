@@ -5,6 +5,8 @@
 설비의 고장을 예측하고, 유지보수 일정을 최적화하며, 설비 성능을 분석하는 AI 기반 솔루션을 제공합니다.
 Meta Llama 모델을 사용하여 로컬 환경에서 실행 가능하여 민감한 설비 데이터를 외부 서버로 전송하지 않고 처리할 수 있습니다.
 
+![process_overview.png](image%2Fprocess_overview.png)
+
 ## 주요 기능 설명
 1. 설비 관리: 설비 정보 CRUD 기능
 2. 고장 이력 관리: 설비 고장 데이터 기록 및 분석
@@ -113,45 +115,6 @@ src/main/java/genai/idea/fms/
 5. 컨텍스트 증강: EquipmentAnalysisService가 관련 데이터 결합
 6. 생성: OllamaChatModel이 분석 결과 및 예측 생성
 7. 응답: API를 통해 사용자에게 결과 전달
-
-### AI 개념 적용
-1. 텍스트 생성 (Text Generation):
-    - 적용: OllamaChatModel
-    - 위치: EquipmentAnalysisService
-    - 주요 메서드: findEquipmentWithMostMaintenanceHistory(), findEquipmentWithLeastMaintenanceHistory(), findMostRecentMaintenanceHistory(), findEquipmentWithHighFailureProbability()
-    - 목적: 설비 분석 결과를 자연어로 설명하는 응답 생성
-
-
-2. 임베딩 (Embeddings):
-    - 적용: EmbeddingService
-    - 위치: EmbeddingService, FailurePredictionService
-    - 주요 메서드: embedText(), embedFailureHistory()
-    - 목적: 설비, 고장, 정비 데이터를 벡터로 변환하여 유사성 검색에 활용
-
-
-3. 프롬프트 엔지니어링 (Prompt Engineering):
-    - 적용: SystemPromptTemplate
-    - 위치: EquipmentAnalysisService, 리소스 폴더의 .st 파일들
-    - 파일: high-failure-probability.st, least-maintenance.st, most-maintenance.st, recent-maintenance.st
-    - 목적: 분석 상황에 맞는 동적 프롬프트 생성으로 LLM 응답의 품질 향상
-
-
-4. 유사성 검색 (Similarity Search):
-    - 적용: VectorStore
-    - 위치: FailurePredictionService
-    - 주요 메서드: findSimilarFailures()
-    - 목적: 유사한 고장 패턴이나 정비 이력을 찾아 예측 및 분석에 활용
-
-
-5. 검색 증강 생성 (Retrieval Augmented Generation, RAG):
-    - 적용: FailurePredictionService와 EquipmentAnalysisService 조합
-    - 프로세스:
-        1. findSimilarFailures()로 유사 고장 사례 검색
-        2. 검색된 사례와 추가 컨텍스트를 LLM 프롬프트에 포함
-        3. OllamaChatModel을 통해 증강된 정보를 바탕으로 분석 결과 생성
-    - 목적: 외부 데이터(과거 고장 이력)를 활용하여 더 정확하고 관련성 높은 AI 응답 생성
-
-
 ## 벡터와 임베딩
 
 이 프로젝트에서 벡터와 임베딩은 설비 데이터의 효율적인 처리와 분석을 위한 핵심 개념입니다.
@@ -229,6 +192,47 @@ PostgreSQL의 pgvector 확장을 사용하여 벡터 데이터를 효율적으�
 유클리디안 거리(Euclidean Distance)
 두 점 사이의 직선 거리를 측정하는 방법
 $$d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$$
+
+### AI 개념 적용
+1. 텍스트 생성 (Text Generation):
+    - 적용: OllamaChatModel
+    - 위치: EquipmentAnalysisService
+    - 주요 메서드: findEquipmentWithMostMaintenanceHistory(), findEquipmentWithLeastMaintenanceHistory(), findMostRecentMaintenanceHistory(), findEquipmentWithHighFailureProbability()
+    - 목적: 설비 분석 결과를 자연어로 설명하는 응답 생성
+
+
+2. 임베딩 (Embeddings):
+    - 적용: EmbeddingService
+    - 위치: EmbeddingService, FailurePredictionService
+    - 주요 메서드: embedText(), embedFailureHistory()
+    - 목적: 설비, 고장, 정비 데이터를 벡터로 변환하여 유사성 검색에 활용
+
+
+3. 프롬프트 엔지니어링 (Prompt Engineering):
+    - 적용: SystemPromptTemplate
+    - 위치: EquipmentAnalysisService, 리소스 폴더의 .st 파일들
+    - 파일: high-failure-probability.st, least-maintenance.st, most-maintenance.st, recent-maintenance.st
+    - 목적: 분석 상황에 맞는 동적 프롬프트 생성으로 LLM 응답의 품질 향상
+
+
+4. 유사성 검색 (Similarity Search):
+    - 적용: VectorStore
+    - 위치: FailurePredictionService
+    - 주요 메서드: findSimilarFailures()
+    - 목적: 유사한 고장 패턴이나 정비 이력을 찾아 예측 및 분석에 활용
+
+
+5. 검색 증강 생성 (Retrieval Augmented Generation, RAG):
+    - 적용: FailurePredictionService와 EquipmentAnalysisService 조합
+    - 프로세스:
+        1. findSimilarFailures()로 유사 고장 사례 검색
+        2. 검색된 사례와 추가 컨텍스트를 LLM 프롬프트에 포함
+        3. OllamaChatModel을 통해 증강된 정보를 바탕으로 분석 결과 생성
+    - 목적: 외부 데이터(과거 고장 이력)를 활용하여 더 정확하고 관련성 높은 AI 응답 생성
+
+
+6. 워크플로우
+![embedding.png](image%2Fembedding.png)
 
 
 ## 설치 및 실행 방법 (Windows 기준)
